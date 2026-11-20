@@ -32,6 +32,10 @@
     * [Continuous loader](#continuous-loader)
     * [Archives](#archives)
     * [One example to rule them all](#one-example-to-rule-them-all)
+* [Prefab: cloning subgraphs](#prefab-cloning-subgraphs)
+  * [Required and optional components](#required-and-optional-components)
+  * [Overrides](#overrides)
+  * [External references and failure handling](#external-references-and-failure-handling)
 * [Storage](#storage)
   * [Component traits](#component-traits)
   * [Empty type optimization](#empty-type-optimization)
@@ -1309,6 +1313,85 @@ The code **is not** production-ready and it is not neither the only nor
 risk.<br/>
 The basic idea is to store everything in a group of queues in memory, then bring
 everything back to the registry with different loaders.
+
+## Prefab: cloning subgraphs
+
+The `prefab` class instantiates independent copies of an entity _subgraph_: a
+set of entities along with selected components. Internal references (that is,
+components that refer to entities of the subgraph) are remapped to the newly
+created identifiers, so a cloned turret keeps its barrel and ammo slot pointing
+at the clones rather than at the originals.
+
+A prefab is built step by step and bound to a registry:
+
+```cpp
+entt::prefab prefab{registry};
+
+// select the entities that make up the subgraph
+prefab.entity(body).entity(barrel).entity(ammo);
+
+// declare the components to duplicate (see required vs optional below)
+prefab.optional_component<turret_body>()
+    .optional_component<gun_barrel>()
+    .optional_component<ammo_slot>();
+
+// declare the data members that hold entity references and must be remapped
+prefab.link<gun_barrel>(&gun_barrel::mounted_on)
+    .link<ammo_slot>(&ammo_slot::feeds)
+    .link<ammo_slot>(&ammo_slot::spare_targets);
+```
+
+Both single entities and ranges are accepted and adding an entity more than once
+has no effect. `instantiate` returns a result object that reports the outcome
+and, on success, the old-to-new identifier map:
+
+```cpp
+auto result = prefab.instantiate();
+
+if(result) {
+    const auto cloned_body = result.entities.map(body);
+    // gun_barrel::mounted_on of the cloned barrel refers to cloned_body
+}
+```
+
+### Required and optional components
+
+A component registered with `component` is _required_: if a selected entity does
+not own it, the instantiation fails with `prefab_error::missing_component`
+before any entity is created. `optional_component` copies the component where it
+is present and skips it elsewhere, which fits subgraphs where different entities
+own different components (a body, a barrel, an ammo slot and so on). Registering
+a type both ways keeps it required.
+
+### Overrides
+
+Components of a clone can be overridden with a new value or by patching them
+in-place. Overrides target a source entity and apply to its clone:
+
+```cpp
+prefab.override<turret_body>(body, turret_body{77});
+prefab.override<gun_barrel>(barrel, [](gun_barrel &barrel) { barrel.caliber = 33; });
+```
+
+The source entities and their components are never modified.
+
+### External references and failure handling
+
+References to entities that do not belong to the subgraph are _external_. The
+policy is configured with `on_external_reference`:
+
+* `external_ref_policy::preserve` (the default) keeps external references as
+  they are. Null entities are never considered external.
+* `external_ref_policy::reject` makes the instantiation fail with
+  `prefab_error::external_reference` and reports the offending identifier.
+
+Every failure path is all-or-nothing. Destroyed entities in the selection
+(`invalid_entity`), missing required components (`missing_component`), overrides
+that target an entity outside the subgraph (`external_entity`), rejected
+external references and exceptions thrown while copying (`aborted`) all leave
+the registry untouched: entities already created for the instance are destroyed
+and the returned map is empty. Cyclic references are remapped correctly because
+remapping happens after every clone exists.
 
 # Storage
 

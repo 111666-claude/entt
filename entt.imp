@@ -23,6 +23,7 @@
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/io.hpp>", "public" ] },
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/mixin.hpp>", "public" ] },
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/organizer.hpp>", "public" ] },
+  { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/prefab.hpp>", "public" ] },
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/ranges.hpp>", "public" ] },
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/registry.hpp>", "public" ] },
   { "include": [ "@[\"<].*/entity/fwd\\.hpp[\">]", "private", "<entt/entity/runtime_view.hpp>", "public" ] },

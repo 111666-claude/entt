@@ -156,6 +156,7 @@ if(ENTT_INCLUDE_HEADERS)
         entity/helper.hpp
         entity/io.hpp
         entity/organizer.hpp
+        entity/prefab.hpp
         entity/ranges.hpp
         entity/registry.hpp
         entity/runtime_view.hpp

@@ -68,6 +68,15 @@ class basic_snapshot_loader;
 template<typename>
 class basic_continuous_loader;
 
+template<typename>
+class basic_prefab;
+
+enum class external_ref_policy : stl::uint8_t;
+enum class prefab_error : stl::uint8_t;
+
+template<typename>
+struct prefab_result;
+
 /*! @brief Alias declaration for the most common use case. */
 using sparse_set = basic_sparse_set<>;
 
@@ -126,6 +135,13 @@ using snapshot_loader = basic_snapshot_loader<registry>;
 
 /*! @brief Alias declaration for the most common use case. */
 using continuous_loader = basic_continuous_loader<registry>;
+
+/*! @brief Alias declaration for the most common use case. */
+using prefab = basic_prefab<registry>;
+
+/*! @brief Alias declaration for the most common use case. */
+template<typename Entity = entity>
+using prefab_result_t = prefab_result<Entity>;
 
 /*! @brief Alias declaration for the most common use case. */
 using runtime_view = basic_runtime_view<sparse_set>;
